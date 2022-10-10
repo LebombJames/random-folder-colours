@@ -1,0 +1,23 @@
+{
+  "title": "Random Folder Colours",
+  "description": "Highlight combatants with their token disposition.",
+  "manifest": "https://raw.githubusercontent.com/LebombJames/random-folder-colours/v1.0.0/module.json",
+  "download": "https://github.com/LebombJames/random-folder-colours/archive/v1.0.0.zip",
+  "url": "https://github.com/LebombJames/random-folder-colours",
+  "authors": [
+    {
+      "name": "LebombJames",
+      "discord": "LebombJames#1611",
+      "flags": {}
+    }
+  ],
+  "version": "v1.0.0",
+  "esmodules": [
+    "random-folder-colours.js"
+  ],
+  "id": "random-folder-colours",
+  "compatibility": {
+    "minimum": "10",
+    "verified": "10.278"
+  }
+}
