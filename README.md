@@ -2,4 +2,4 @@
 
 Yes, with a U.
 
-Quickly set the colours of folders to easily differenciate them.
+Quickly set the colours of folders to easily differentiate them.
