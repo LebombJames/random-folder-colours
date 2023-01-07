@@ -18,7 +18,7 @@ Hooks.on("init", () => {
         },
         onchange: async (change) => {
             if (change === "colormind") {
-                await createCache(game / 5);
+                await createCache(game.settings.get(MODULE, "colormindCacheSize"));
             }
         },
         default: "colormind"
@@ -38,7 +38,7 @@ Hooks.on("init", () => {
         },
         default: 50,
         onchange: async (change) => {
-            await createCache(game.settings.get(MODULE, "colormindCacheSize") / 5);
+            await createCache(change);
         }
     });
 
@@ -54,7 +54,7 @@ Hooks.on("init", () => {
             max: 20,
             step: 1
         },
-        default: 20,
+        default: 20
     });
 
     for (const document of SIDEBARS) {
@@ -88,10 +88,11 @@ Hooks.on("renderSidebarTab", (directory, html) => {
 });
 
 Hooks.on("ready", async () => {
+    if (!game.user.isGM) return;
     //If the random mode is colormind, generate a cache of the desired size
     if (game.settings.get(MODULE, "randomMode") === "colormind") {
-        colormindCache = await createCache(
-            game.settings.get(MODULE, "colormindCacheSize") / 5
+        createCache(
+            game.settings.get(MODULE, "colormindCacheSize")
             //Divided by 5 because Colormind provides an array of 5 colors. Otherwise a setting of 10 would provide 50 colours
         );
     }
@@ -102,24 +103,22 @@ async function createCache(size) {
     //Generate a cache of the desired size
     let start = window.performance.now();
 
-    console.info(`Random Folder Colours | Building cache of ${size * 5} colours...`);
+    console.info(`Random Folder Colours | Building cache of ${size} colours...`);
     let cache = colormindCache;
     while (cache.length < size) {
-        const set = await callColormind((result) => {
-            return result;
-        });
-        cache.push(set.result);
+        const set = await callColormind();
+        // Spread the array of 5 colors, so the cache remains flat.
+        cache.push(...set);
     }
     let end = window.performance.now();
-    console.info(`Random Folder Colours | Cache of ${cache.length * 5} colours built in ${end - start} ms.`);
-    return cache;
+    console.info(`Random Folder Colours | Cache of ${cache.length} colours built in ${Math.round(end - start)} ms.`);
 }
 
 async function getColormindCache(size) {
     //Splice a desired number of elements off the start of the array to be used as a colour
-    if (colormindCache.length <= size) {
+    if (colormindCache.length < size) {
         //Check to see if we have enough elements to return first
-        await createCache(size);
+        await createCache(game.settings.get(MODULE, "colormindCacheSize") + size);
     }
 
     let set = colormindCache.splice(0, size);
@@ -164,42 +163,26 @@ function addContext(entryOptions) {
 
 //Connect to colormind and get an array of 5 colours, themselves a 0-255 RGB tuple.
 async function callColormind() {
-    let myPromise = new Promise((callback) => {
-        const url = "http://colormind.io/api/";
-        const data = {
+    let response = await fetch("https//colormind.io/api/", {
+        method: "POST",
+        body: JSON.stringify({
             model: "default"
-            //input: [[0,255,0], "N", "N", "N"]
-        };
-
-        const http = new XMLHttpRequest();
-
-        http.open("POST", url, true);
-        http.send(JSON.stringify(data));
-
-        http.onload = () => {
-            if (http.status != 200) {
-                // analyze HTTP status of the response
-                console.error(`Error ${http.status}: ${http.statusText}`); // e.g. 404: Not Found
-            } else {
-                // show the result
-                let result = JSON.parse(http.response);
-                callback(result);
-            }
-        };
+        })
     });
-    return await myPromise;
+    if (!response.ok) return console.error("Failed to reach Colormind.");
+    let result = JSON.parse(await response.text()).result;
+
+    return result;
 }
 
 //Randomise all folders with a colour from colourmind
 async function randomizeAllFoldersColormind(directory) {
     let cached = [];
     let colors = [];
-    const noOfCalls = Math.ceil(directory.folders.length / 5); //Colormind returns an array of 5 RGB arrays, so we'll only need 1 set if we have 5 folders, for example
 
-    //Spread out the sets of 5s into one long array, then convert 0-255 ints to 0-1 floats
-    cached = (await getColormindCache(noOfCalls)).flat(1).map((i) => {
-        i = Color.fromRGB([i[0] / 255, i[1] / 255, i[2] / 255]);
-        return i;
+    //Convert 0-255 ints to 0-1 floats
+    cached = (await getColormindCache(directory.folders.length)).map((i) => {
+        return Color.fromRGB([i[0] / 255, i[1] / 255, i[2] / 255]);
     });
     colors.push(...cached);
 
@@ -209,8 +192,4 @@ async function randomizeAllFoldersColormind(directory) {
     });
 
     await Folder.updateDocuments(updates);
-
-    if (colormindCache.length <= noOfCalls) {
-        await createCache(game.settings.get(MODULE, "colormindCacheSize") / 5);
-    }
 }
