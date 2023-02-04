@@ -163,7 +163,7 @@ function addContext(entryOptions) {
 
 //Connect to colormind and get an array of 5 colours, themselves a 0-255 RGB tuple.
 async function callColormind() {
-    let response = await fetch("https//colormind.io/api/", {
+    let response = await fetch("https://colormind.io/api/", {
         method: "POST",
         body: JSON.stringify({
             model: "default"
