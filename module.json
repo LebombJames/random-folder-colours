@@ -2,7 +2,7 @@
   "title": "Random Folder Colours",
   "description": "Quickly colour folders in order to easily differenciate them.",
   "manifest": "https://raw.githubusercontent.com/LebombJames/random-folder-colours/main/module.json",
-  "download": "https://github.com/LebombJames/random-folder-colours/archive/v2.1.2.zip",
+  "download": "https://github.com/LebombJames/random-folder-colours/archive/v2.1.3.zip",
   "url": "https://github.com/LebombJames/random-folder-colours",
   "authors": [
     {
@@ -10,7 +10,7 @@
       "discord": "LebombJames#1611"
     }
   ],
-  "version": "v2.1.2",
+  "version": "v2.1.3",
   "esmodules": [
     "js/random-folder-colours.js"
   ],
